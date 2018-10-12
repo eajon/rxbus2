@@ -4,6 +4,7 @@ import com.jakewharton.rxrelay2.PublishRelay;
 import com.threshold.rxbus2.annotation.RxSubscribe;
 import com.threshold.rxbus2.util.EventThread;
 
+import org.omg.PortableInterceptor.NON_EXISTENT;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -30,6 +31,8 @@ import io.reactivex.functions.Predicate;
 import io.reactivex.internal.functions.ObjectHelper;
 import io.reactivex.schedulers.Schedulers;
 
+import static io.reactivex.annotations.SchedulerSupport.NONE;
+
 /**
  * once an {@link Observer} has subscribed, emits all subsequently observed items to the
  * subscriber.<br>
@@ -39,6 +42,7 @@ import io.reactivex.schedulers.Schedulers;
 public class RxBus extends BaseBus {
 
     private static volatile RxBus defaultBus;
+
 
     private Map <Object, CompositeDisposable> subscriptions = new HashMap <>();
     private final Map <Integer, List <Object>> stickyEventMap;
@@ -353,7 +357,7 @@ public class RxBus extends BaseBus {
                         RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
                         LoggerUtil.debug("%s @RxSubscribe Annotation: %s", method, rxAnnotation.observeOnThread());
                         Observable <?> observable;
-                        if (rxAnnotation.eventId().equals("0")) {
+                        if (rxAnnotation.eventId().equals(NONE)) {
                             observable = rxAnnotation.isSticky() ? ofStickyType(type) : ofType(type);
                         } else {
                             observable = rxAnnotation.isSticky() ? ofStickyType(Event.class) : ofType(Event.class);

@@ -68,7 +68,7 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
     }
 
     //now we support private method.
-    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true,eventId = "222")
+    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true)
     @SuppressWarnings("unused")
     private void autoListenRxEvent2(DemoEvent2 event) {
         final String text = String.format("{autoListenRxEvent2 Receive sticky DemoEvent2: %s\nThreadId: %s }\n", event.getDemoBean2().getData(), Thread.currentThread().getId());
@@ -141,7 +141,7 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
             case R.id.btnFireStickyEvent:
                 DemoEvent1 demoEvent3 = new DemoEvent1(RxBusActivity.class, new DemoBean1(String.valueOf(RandomUtil.random(10))));
                 DemoEvent2 demoEvent2 = new DemoEvent2(RxBusActivity.class, new DemoBean2(RandomUtil.random(10)));
-                RxBus.getDefault().postSticky("222",demoEvent3);
+                RxBus.getDefault().postSticky(demoEvent2);
                 break;
             case R.id.btnAddNewSubscriber:
                 Disposable subscribe = RxBus.getDefault()
