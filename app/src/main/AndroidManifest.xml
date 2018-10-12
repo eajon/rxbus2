@@ -19,8 +19,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".RxBusActivity"/>
-        <activity android:name=".BehaviorBusActivity"/>
-        <activity android:name=".ReplayBusActivity"/>
     </application>
 
 </manifest>

@@ -58,7 +58,7 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
 //        mCompositeDisposable.add(subscribe);
     }
 
-    @RxSubscribe(observeOnThread = EventThread.MAIN)
+    @RxSubscribe(observeOnThread = EventThread.MAIN,eventId = "111")
     @SuppressWarnings("unused")
     public void autoListenRxEvent(DemoEvent1 demoEvent1) {
         String text = String.format("{autoListenRxEvent Receive DemoEvent1: %s\nThreadId: %s }\n", demoEvent1.getDemoBean1().getData(), Thread.currentThread().getId());
@@ -68,7 +68,7 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
     }
 
     //now we support private method.
-    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true)
+    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true,eventId = "222")
     @SuppressWarnings("unused")
     private void autoListenRxEvent2(DemoEvent2 event) {
         final String text = String.format("{autoListenRxEvent2 Receive sticky DemoEvent2: %s\nThreadId: %s }\n", event.getDemoBean2().getData(), Thread.currentThread().getId());
@@ -136,11 +136,12 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
         switch (view.getId()) {
             case R.id.btnFireEvent:
                 DemoEvent1 demoEvent1 = new DemoEvent1(RxBusActivity.class, new DemoBean1(String.valueOf(RandomUtil.random(10))));
-                RxBus.getDefault().post(demoEvent1);
+                RxBus.getDefault().post("111",demoEvent1);
                 break;
             case R.id.btnFireStickyEvent:
+                DemoEvent1 demoEvent3 = new DemoEvent1(RxBusActivity.class, new DemoBean1(String.valueOf(RandomUtil.random(10))));
                 DemoEvent2 demoEvent2 = new DemoEvent2(RxBusActivity.class, new DemoBean2(RandomUtil.random(10)));
-                RxBus.getDefault().postSticky(demoEvent2);
+                RxBus.getDefault().postSticky("222",demoEvent3);
                 break;
             case R.id.btnAddNewSubscriber:
                 Disposable subscribe = RxBus.getDefault()

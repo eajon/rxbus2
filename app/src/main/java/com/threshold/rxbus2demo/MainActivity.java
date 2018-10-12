@@ -20,10 +20,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(RxBusActivity.class);
                 break;
             case R.id.btnBehaviorBus:
-                startActivity(BehaviorBusActivity.class);
+
                 break;
             case R.id.btnReplayBus:
-                startActivity(ReplayBusActivity.class);
+
                 break;
         }
     }

@@ -40,8 +40,8 @@ public class RxBus extends BaseBus {
 
     private static volatile RxBus defaultBus;
 
-    private Map<Object, CompositeDisposable> subscriptions = new HashMap<>();
-    private final Map<Integer, List<Object>> stickyEventMap;
+    private Map <Object, CompositeDisposable> subscriptions = new HashMap <>();
+    private final Map <Integer, List <Object>> stickyEventMap;
 
 //    /*
 //     * Use {@link #getDefault()} instead.
@@ -67,9 +67,9 @@ public class RxBus extends BaseBus {
         return defaultBus;
     }
 
-    public RxBus(PublishRelay<Object> publishRelay) {
+    public RxBus(PublishRelay <Object> publishRelay) {
         super(publishRelay);
-        stickyEventMap = new ConcurrentHashMap<>();
+        stickyEventMap = new ConcurrentHashMap <>();
     }
 
     /**
@@ -77,6 +77,11 @@ public class RxBus extends BaseBus {
      */
     public RxBus() {
         this(PublishRelay.create());
+    }
+
+
+    public void post(String eventId, @NonNull Object event) {
+        post(new Event(eventId, event));
     }
 
     /**
@@ -87,10 +92,10 @@ public class RxBus extends BaseBus {
     public void postSticky(@NonNull Object event) {
         ObjectHelper.requireNonNull(event, "event == null");
         synchronized (stickyEventMap) {
-            List<Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
+            List <Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
             boolean isStickEventListInMap = true;
             if (stickyEvents == null) {
-                stickyEvents = new LinkedList<>();
+                stickyEvents = new LinkedList <>();
                 isStickEventListInMap = false;
             }
             stickyEvents.add(event);
@@ -101,10 +106,28 @@ public class RxBus extends BaseBus {
         post(event);
     }
 
+    public void postSticky(String eventId, @NonNull Object event) {
+        ObjectHelper.requireNonNull(event, "event == null");
+        synchronized (stickyEventMap) {
+            List <Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
+            boolean isStickEventListInMap = true;
+            if (stickyEvents == null) {
+                stickyEvents = new LinkedList <>();
+                isStickEventListInMap = false;
+            }
+            stickyEvents.add(new Event(eventId, event));
+            if (!isStickEventListInMap) {
+                stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
+            }
+        }
+        post(new Event(eventId, event));
+    }
+
+
     /**
      * Get unmodifiable list of specific type sticky event.
      * <p>
-     *   DO NOT ALTER (ADD REMOVE) THIS STICKY EVENT LIST!
+     * DO NOT ALTER (ADD REMOVE) THIS STICKY EVENT LIST!
      * </p>
      * If you want to delete some of this list,please use {@link #removeStickyEventType(Class)}  or {@link #removeStickyEvent(Object)} or {@link #clearAllSticky()} <br>
      * If you want to add some sticky event,please use {@link #postSticky(Object)}
@@ -115,10 +138,10 @@ public class RxBus extends BaseBus {
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    public <T> List<T> getSticky(@NonNull Class<T> eventType) {
+    public <T> List <T> getSticky(@NonNull Class <T> eventType) {
         ObjectHelper.requireNonNull(eventType, "eventType == null");
         synchronized (stickyEventMap) {
-            List<T> list = (List<T>) stickyEventMap.get(eventType.hashCode());
+            List <T> list = (List <T>) stickyEventMap.get(eventType.hashCode());
             return list == null ? null : Collections.unmodifiableList(list);
         }
     }
@@ -131,7 +154,7 @@ public class RxBus extends BaseBus {
     public void removeStickyEvent(@NonNull Object event) {
         ObjectHelper.requireNonNull(event, "event == null");
         synchronized (stickyEventMap) {
-            List<Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
+            List <Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
             if (stickyEvents != null) {
                 stickyEvents.remove(event);
             }
@@ -140,13 +163,14 @@ public class RxBus extends BaseBus {
 
     /**
      * Remove specific sticky event
+     *
      * @param eventType the EventType
-     * @param position the location of EventType
+     * @param position  the location of EventType
      */
-    public void removeStickyEventAt(@NonNull Class<?> eventType,int position) {
+    public void removeStickyEventAt(@NonNull Class <?> eventType, int position) {
         ObjectHelper.requireNonNull(eventType, "eventType == null");
         synchronized (stickyEventMap) {
-            List<Object> stickyEvents = stickyEventMap.get(eventType.hashCode());
+            List <Object> stickyEvents = stickyEventMap.get(eventType.hashCode());
             if (stickyEvents != null) {
                 stickyEvents.remove(position);
             }
@@ -158,7 +182,7 @@ public class RxBus extends BaseBus {
      *
      * @param eventType the sticky event type that you want remove
      */
-    public void removeStickyEventType(@NonNull Class<?> eventType) {
+    public void removeStickyEventType(@NonNull Class <?> eventType) {
         ObjectHelper.requireNonNull(eventType, "eventType == null");
         synchronized (stickyEventMap) {
             stickyEventMap.remove(eventType.hashCode());
@@ -181,10 +205,10 @@ public class RxBus extends BaseBus {
      * @param <T>       event type
      * @return Observable of {@code T}
      */
-    public <T> Observable<T> ofStickyType(@NonNull Class<T> eventType) {
+    public <T> Observable <T> ofStickyType(@NonNull Class <T> eventType) {
         synchronized (stickyEventMap) {
             @SuppressWarnings("unchecked")
-            List<T> stickyEvents = (List<T>) stickyEventMap.get(eventType.hashCode());
+            List <T> stickyEvents = (List <T>) stickyEventMap.get(eventType.hashCode());
             if (stickyEvents != null && stickyEvents.size() > 0) {
                 return Observable.fromIterable(stickyEvents)
                         .mergeWith(ofType(eventType));
@@ -198,19 +222,19 @@ public class RxBus extends BaseBus {
      */
     public void reset() {
         Observable.fromIterable(subscriptions.values())
-                .filter(new Predicate<CompositeDisposable>() {
+                .filter(new Predicate <CompositeDisposable>() {
                     @Override
                     public boolean test(CompositeDisposable compositeDisposable) throws Exception {
                         return compositeDisposable != null && !compositeDisposable.isDisposed();
                     }
                 }).subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
-                .subscribe(new Consumer<CompositeDisposable>() {
+                .subscribe(new Consumer <CompositeDisposable>() {
                     @Override
                     public void accept(CompositeDisposable compositeDisposable) throws Exception {
                         compositeDisposable.clear();
                     }
-                }, new Consumer<Throwable>() {
+                }, new Consumer <Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         LoggerUtil.error(throwable, "Dispose subscription");
@@ -243,7 +267,7 @@ public class RxBus extends BaseBus {
     public void register(@NonNull final Object subscriber) {
         ObjectHelper.requireNonNull(subscriber, "subscriber == null");
         Observable.just(subscriber)
-                .filter(new Predicate<Object>() {
+                .filter(new Predicate <Object>() {
                     @Override
                     public boolean test(Object obj) throws Exception {
                         boolean registered = isRegistered(obj);
@@ -253,14 +277,14 @@ public class RxBus extends BaseBus {
                         return !registered;
                     }
                 })
-                .flatMap(new Function<Object, ObservableSource<Method>>() {
+                .flatMap(new Function <Object, ObservableSource <Method>>() {
                     @Override
-                    public ObservableSource<Method> apply(Object obj) throws Exception {
+                    public ObservableSource <Method> apply(Object obj) throws Exception {
                         LoggerUtil.debug("start to analyze subscriber: %s", obj);
                         return Observable.fromArray(obj.getClass().getDeclaredMethods());
                     }
                 })
-                .map(new Function<Method, Method>() {
+                .map(new Function <Method, Method>() {
                     @Override
                     public Method apply(Method method) throws Exception {
                         LoggerUtil.debug("set method can accessible: %s ", method);
@@ -268,7 +292,7 @@ public class RxBus extends BaseBus {
                         return method;
                     }
                 })
-                .filter(new Predicate<Method>() {
+                .filter(new Predicate <Method>() {
                     @Override
                     public boolean test(Method method) throws Exception {
                         boolean hasRxSubscribeAnnotation = method.isAnnotationPresent(RxSubscribe.class);
@@ -287,13 +311,13 @@ public class RxBus extends BaseBus {
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
-                .subscribe(new Consumer<Method>() {
+                .subscribe(new Consumer <Method>() {
                     @Override
                     public void accept(Method method) throws Exception {
                         LoggerUtil.debug("now start to add subscription method: %s", method);
                         addSubscriptionMethod(subscriber, method);
                     }
-                }, new Consumer<Throwable>() {
+                }, new Consumer <Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         LoggerUtil.error(throwable, "%s failed on register method", subscriber);
@@ -309,37 +333,74 @@ public class RxBus extends BaseBus {
 
     private void addSubscriptionMethod(final Object subscriber, final Method method) {
         Disposable subscribe = Observable.just(method.getParameterTypes()[0])
-                .doOnNext(new Consumer<Class<?>>() {
+                .doOnNext(new Consumer <Class <?>>() {
                     @Override
-                    public void accept(Class<?> type) throws Exception {
+                    public void accept(Class <?> type) throws Exception {
                         LoggerUtil.debug("Origin: [method: %s ] , param[0] type: %s", method, type);
                     }
                 })
-                .map(new Function<Class<?>, Class<?>>() {
+                .map(new Function <Class <?>, Class <?>>() {
                     @Override
-                    public Class<?> apply(Class<?> type) throws Exception {
-                        Class<?> eventType = getEventType(type);
+                    public Class <?> apply(Class <?> type) throws Exception {
+                        Class <?> eventType = getEventType(type);
                         LoggerUtil.debug("Listen event type: %s", eventType);
                         return eventType;
                     }
                 })
-                .flatMap(new Function<Class<?>, ObservableSource<?>>() {
+                .flatMap(new Function <Class <?>, ObservableSource <?>>() {
                     @Override
-                    public ObservableSource<?> apply(Class<?> type) throws Exception {
+                    public ObservableSource <?> apply(Class <?> type) throws Exception {
                         RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
                         LoggerUtil.debug("%s @RxSubscribe Annotation: %s", method, rxAnnotation.observeOnThread());
-                        Observable<?> observable = rxAnnotation.isSticky() ? ofStickyType(type) : ofType(type);
+                        Observable <?> observable;
+                        if (rxAnnotation.eventId().equals("0")) {
+                            observable = rxAnnotation.isSticky() ? ofStickyType(type) : ofType(type);
+                        } else {
+                            observable = rxAnnotation.isSticky() ? ofStickyType(Event.class) : ofType(Event.class);
+                        }
                         return observable.observeOn(EventThread.getScheduler(rxAnnotation.observeOnThread()));
                     }
                 })
+                .filter(new Predicate <Object>() {
+                    @Override
+                    public boolean test(Object obj) {
+                        if (obj instanceof Event) {
+                            Event event = (Event) obj;
+                            RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
+                            if (rxAnnotation.eventId().equals(event.getEventId())) {
+                                LoggerUtil.debug("eventID same");
+                            } else {
+                                LoggerUtil.debug("eventID diff");
+                            }
+                            if (method.getParameterTypes()[0].equals(event.getObject().getClass())) {
+                                LoggerUtil.debug("class same" + event.getObject().getClass());
+                            } else {
+                                LoggerUtil.debug("class diff" + event.getObject().getClass() + method.getParameterTypes()[0]);
+                            }
+                            if (rxAnnotation.eventId().equals(event.getEventId()) && method.getParameterTypes()[0].equals(event.getObject().getClass())) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+
+
+                        return true;
+                    }
+                })
                 .subscribe(
-                        new Consumer<Object>() {
+                        new Consumer <Object>() {
                             @Override
                             @SuppressWarnings("all")
                             public void accept(Object obj) throws Exception {
                                 LoggerUtil.debug("Subscriber:%s invoke Method:%s", subscriber, method);
                                 method.setAccessible(true);
-                                method.invoke(subscriber, obj);//now RxBus2 do not handle exception for method. you should do it by yourself.
+                                if (obj instanceof Event) {
+                                    Event event = (Event) obj;
+                                    method.invoke(subscriber, ((Event) obj).getObject());
+                                } else {
+                                    method.invoke(subscriber, obj);
+                                }//now RxBus2 do not handle exception for method. you should do it by yourself.
 //                                try {
 //                                    method.invoke(subscriber, obj);
 //                                } catch (IllegalAccessException e) {
@@ -348,7 +409,7 @@ public class RxBus extends BaseBus {
 //                                    LoggerUtil.error(e, "%s invoke error", method);
 //                                }
                             }
-                        }, new Consumer<Throwable>() {
+                        }, new Consumer <Throwable>() {
                             @Override
                             public void accept(Throwable throwable) throws Exception {
                                 LoggerUtil.error(throwable, "[%s] invoke method:[%s] failed", subscriber, method);
@@ -372,19 +433,19 @@ public class RxBus extends BaseBus {
     public void unregister(@NonNull final Object subscriber) {
         ObjectHelper.requireNonNull(subscriber, "subscriber == null");
         Flowable.just(subscriber)
-                .map(new Function<Object, CompositeDisposable>() {
+                .map(new Function <Object, CompositeDisposable>() {
                     @Override
                     public CompositeDisposable apply(Object subscriber) throws Exception {
                         return subscriptions.get(subscriber.hashCode());
                     }
                 })
-                .filter(new Predicate<CompositeDisposable>() {
+                .filter(new Predicate <CompositeDisposable>() {
                     @Override
                     public boolean test(CompositeDisposable compositeDisposable) throws Exception {
                         return compositeDisposable != null && !compositeDisposable.isDisposed();
                     }
                 })
-                .subscribe(new Subscriber<CompositeDisposable>() {
+                .subscribe(new Subscriber <CompositeDisposable>() {
                     @Override
                     public void onSubscribe(Subscription s) {
                         s.request(Long.MAX_VALUE);
@@ -409,7 +470,7 @@ public class RxBus extends BaseBus {
                 });
     }
 
-    private Class<?> getEventType(Class<?> cls) {
+    private Class <?> getEventType(Class <?> cls) {
         String clsName = cls.getName();
         if (clsName.equals(int.class.getName())) {
             cls = Integer.class;
@@ -429,6 +490,41 @@ public class RxBus extends BaseBus {
             cls = Character.class;
         }
         return cls;
+    }
+
+    private class Event {
+
+        private String eventId;
+        private Object object;
+
+        public Event() {
+
+        }
+
+
+        private Event(String eventId, Object o) {
+            this.eventId = eventId;
+            this.object = o;
+        }
+
+
+        public String getEventId() {
+            return eventId;
+        }
+
+        public void setEventId(String eventId) {
+            this.eventId = eventId;
+        }
+
+        private Object getObject() {
+            return object;
+        }
+
+
+        public void setObject(Object object) {
+            this.object = object;
+        }
+
     }
 
 }

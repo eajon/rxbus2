@@ -15,4 +15,5 @@ import java.lang.annotation.Target;
 public @interface RxSubscribe {
     EventThread observeOnThread() default EventThread.IO;
     boolean isSticky() default false;
+    String eventId() default "";
 }

@@ -70,6 +70,7 @@ public class BaseBus implements Bus {
         }
     }
 
+
     @Override @SuppressWarnings("unchecked")
     public <T> Observable<T> ofType(@NonNull Class<T> eventType) {
         if (eventType.equals(Object.class)) {
@@ -77,6 +78,8 @@ public class BaseBus implements Bus {
         }
         return relay.ofType(eventType);
     }
+
+
 
     @Override
     public boolean hasObservers() {
