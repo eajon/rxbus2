@@ -367,16 +367,16 @@ public class RxBus extends BaseBus {
                         if (obj instanceof Event) {
                             Event event = (Event) obj;
                             RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
-                            if (rxAnnotation.eventId().equals(event.getEventId())) {
-                                LoggerUtil.debug("eventID same");
-                            } else {
-                                LoggerUtil.debug("eventID diff");
-                            }
-                            if (method.getParameterTypes()[0].equals(event.getObject().getClass())) {
-                                LoggerUtil.debug("class same" + event.getObject().getClass());
-                            } else {
-                                LoggerUtil.debug("class diff" + event.getObject().getClass() + method.getParameterTypes()[0]);
-                            }
+//                            if (rxAnnotation.eventId().equals(event.getEventId())) {
+//                                LoggerUtil.debug("eventID same");
+//                            } else {
+//                                LoggerUtil.debug("eventID diff");
+//                            }
+//                            if (method.getParameterTypes()[0].equals(event.getObject().getClass())) {
+//                                LoggerUtil.debug("class same" + event.getObject().getClass());
+//                            } else {
+//                                LoggerUtil.debug("class diff" + event.getObject().getClass() + method.getParameterTypes()[0]);
+//                            }
                             if (rxAnnotation.eventId().equals(event.getEventId()) && method.getParameterTypes()[0].equals(event.getObject().getClass())) {
                                 return true;
                             } else {
