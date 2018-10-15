@@ -12,11 +12,11 @@ This is seems like [EventBus](https://github.com/greenrobot/EventBus) which inte
 public @interface RxSubscribe {
     EventThread observeOnThread() default EventThread.IO;
     boolean isSticky() default false;
-    String eventId() default "";
+    String eventId() default NONE;
 }
 
     public void post(String eventId, @NonNull Object event) {
-        post(new Event(eventId, event));
+        post(new RxEvent(eventId, event));
     }
     
      public void postSticky(String eventId, @NonNull Object event) {
@@ -28,12 +28,12 @@ public @interface RxSubscribe {
                 stickyEvents = new LinkedList <>();
                 isStickEventListInMap = false;
             }
-            stickyEvents.add(new Event(eventId, event));
+            stickyEvents.add(new RxEvent(eventId, event));
             if (!isStickEventListInMap) {
                 stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
             }
         }
-        post(new Event(eventId, event));
+        post(new RxEvent(eventId, event));
     }
 ```
 
