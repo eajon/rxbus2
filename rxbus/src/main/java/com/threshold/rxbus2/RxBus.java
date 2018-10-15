@@ -2,6 +2,7 @@ package com.threshold.rxbus2;
 
 import com.jakewharton.rxrelay2.PublishRelay;
 import com.threshold.rxbus2.annotation.RxSubscribe;
+import com.threshold.rxbus2.bean.RxEvent;
 import com.threshold.rxbus2.util.EventThread;
 
 import org.omg.PortableInterceptor.NON_EXISTENT;
@@ -85,7 +86,7 @@ public class RxBus extends BaseBus {
 
 
     public void post(String eventId, @NonNull Object event) {
-        post(new Event(eventId, event));
+        post(new RxEvent(eventId, event));
     }
 
     /**
@@ -119,12 +120,12 @@ public class RxBus extends BaseBus {
                 stickyEvents = new LinkedList <>();
                 isStickEventListInMap = false;
             }
-            stickyEvents.add(new Event(eventId, event));
+            stickyEvents.add(new RxEvent(eventId, event));
             if (!isStickEventListInMap) {
                 stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
             }
         }
-        post(new Event(eventId, event));
+        post(new RxEvent(eventId, event));
     }
 
 
@@ -360,7 +361,7 @@ public class RxBus extends BaseBus {
                         if (rxAnnotation.eventId().equals(NONE)) {
                             observable = rxAnnotation.isSticky() ? ofStickyType(type) : ofType(type);
                         } else {
-                            observable = rxAnnotation.isSticky() ? ofStickyType(Event.class) : ofType(Event.class);
+                            observable = rxAnnotation.isSticky() ? ofStickyType(RxEvent.class) : ofType(RxEvent.class);
                         }
                         return observable.observeOn(EventThread.getScheduler(rxAnnotation.observeOnThread()));
                     }
@@ -368,8 +369,8 @@ public class RxBus extends BaseBus {
                 .filter(new Predicate <Object>() {
                     @Override
                     public boolean test(Object obj) {
-                        if (obj instanceof Event) {
-                            Event event = (Event) obj;
+                        if (obj instanceof RxEvent) {
+                            RxEvent event = (RxEvent) obj;
                             RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
 //                            if (rxAnnotation.eventId().equals(event.getEventId())) {
 //                                LoggerUtil.debug("eventID same");
@@ -381,7 +382,7 @@ public class RxBus extends BaseBus {
 //                            } else {
 //                                LoggerUtil.debug("class diff" + event.getObject().getClass() + method.getParameterTypes()[0]);
 //                            }
-                            if (rxAnnotation.eventId().equals(event.getEventId()) && method.getParameterTypes()[0].equals(event.getObject().getClass())) {
+                            if (rxAnnotation.eventId().equals(event.getEventId()) && method.getParameterTypes()[0].equals(event.getSource().getClass())) {
                                 return true;
                             } else {
                                 return false;
@@ -399,9 +400,9 @@ public class RxBus extends BaseBus {
                             public void accept(Object obj) throws Exception {
                                 LoggerUtil.debug("Subscriber:%s invoke Method:%s", subscriber, method);
                                 method.setAccessible(true);
-                                if (obj instanceof Event) {
-                                    Event event = (Event) obj;
-                                    method.invoke(subscriber, ((Event) obj).getObject());
+                                if (obj instanceof RxEvent) {
+                                    RxEvent event = (RxEvent) obj;
+                                    method.invoke(subscriber, ((RxEvent) obj).getSource());
                                 } else {
                                     method.invoke(subscriber, obj);
                                 }//now RxBus2 do not handle exception for method. you should do it by yourself.
@@ -496,39 +497,6 @@ public class RxBus extends BaseBus {
         return cls;
     }
 
-    private class Event {
 
-        private String eventId;
-        private Object object;
-
-        public Event() {
-
-        }
-
-
-        private Event(String eventId, Object o) {
-            this.eventId = eventId;
-            this.object = o;
-        }
-
-
-        public String getEventId() {
-            return eventId;
-        }
-
-        public void setEventId(String eventId) {
-            this.eventId = eventId;
-        }
-
-        private Object getObject() {
-            return object;
-        }
-
-
-        public void setObject(Object object) {
-            this.object = object;
-        }
-
-    }
 
 }
