@@ -210,16 +210,16 @@ public class RxBus extends BaseBus {
      * @param <T>       event type
      * @return Observable of {@code T}
      */
-    public <T> Observable <T> ofStickyType(boolean hasEventId,@NonNull Class <T> eventType) {
+    public <T> Flowable <T> ofStickyType(boolean hasEventId, @NonNull Class <T> eventType) {
         synchronized (stickyEventMap) {
             @SuppressWarnings("unchecked")
             List <T> stickyEvents = (List <T>) stickyEventMap.get(eventType.hashCode());
             if (stickyEvents != null && stickyEvents.size() > 0) {
-                return Observable.fromIterable(stickyEvents)
-                        .mergeWith(hasEventId?ofType((Class <T>) RxEvent.class):ofType(eventType));
+                return Flowable.fromIterable(stickyEvents)
+                        .mergeWith(hasEventId ? ofType((Class <T>) RxEvent.class) : ofType(eventType));
             }
         }
-        return hasEventId?ofType((Class <T>) RxEvent.class):ofType(eventType);
+        return hasEventId ? ofType((Class <T>) RxEvent.class) : ofType(eventType);
     }
 
     /**
@@ -337,7 +337,7 @@ public class RxBus extends BaseBus {
     }
 
     private void addSubscriptionMethod(final Object subscriber, final Method method) {
-        Disposable subscribe = Observable.just(method.getParameterTypes()[0])
+        Disposable subscribe = Flowable.just(method.getParameterTypes()[0])
                 .doOnNext(new Consumer <Class <?>>() {
                     @Override
                     public void accept(Class <?> type) throws Exception {
@@ -352,19 +352,17 @@ public class RxBus extends BaseBus {
                         return eventType;
                     }
                 })
-                .flatMap(new Function <Class <?>, ObservableSource <?>>() {
+                .flatMap(new Function <Class <?>, Flowable <?>>() {
                     @Override
-                    public ObservableSource <?> apply(Class <?> type) throws Exception {
+                    public Flowable <?> apply(Class <?> type) throws Exception {
                         RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
                         LoggerUtil.debug("%s @RxSubscribe Annotation: %s", method, rxAnnotation.observeOnThread());
-                        Observable <?> observable;
-                        if(rxAnnotation.eventId().equals(NONE)) {
-                             observable = rxAnnotation.isSticky() ? ofStickyType(false,type) : ofType(type);
-                        }else
-                        {
-                            observable =rxAnnotation.isSticky() ? ofStickyType(true,type) : ofType(RxEvent.class);
+                        Flowable <?> observable;
+                        if (rxAnnotation.eventId().equals(NONE)) {
+                            observable = rxAnnotation.isSticky() ? ofStickyType(false, type) : ofType(type);
+                        } else {
+                            observable = rxAnnotation.isSticky() ? ofStickyType(true, type) : ofType(RxEvent.class);
                         }
-
                         return observable.observeOn(EventThread.getScheduler(rxAnnotation.observeOnThread()));
                     }
                 })
@@ -498,7 +496,6 @@ public class RxBus extends BaseBus {
         }
         return cls;
     }
-
 
 
 }

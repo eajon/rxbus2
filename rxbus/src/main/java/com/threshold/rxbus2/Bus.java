@@ -1,5 +1,6 @@
 package com.threshold.rxbus2;
 
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
 
@@ -21,7 +22,7 @@ public interface Bus {
      * @param <T> event type
      * @return Observable of {@code T}
      */
-    <T> Observable<T> ofType(@NonNull Class<T> eventType);
+    <T> Flowable<T> ofType(@NonNull Class<T> eventType);
 
     /**
      * Returns true if the subject has any Observers.

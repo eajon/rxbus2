@@ -4,6 +4,8 @@ import com.jakewharton.rxrelay2.Relay;
 import com.threshold.rxbus2.util.EventThread;
 import com.threshold.rxbus2.util.Logger;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Scheduler;
 import io.reactivex.annotations.NonNull;
@@ -72,11 +74,11 @@ public class BaseBus implements Bus {
 
 
     @Override @SuppressWarnings("unchecked")
-    public <T> Observable<T> ofType(@NonNull Class<T> eventType) {
+    public <T> Flowable<T> ofType(@NonNull Class<T> eventType) {
         if (eventType.equals(Object.class)) {
-            return (Observable<T>) relay;
+            return (Flowable<T>) relay.toFlowable(BackpressureStrategy.LATEST);
         }
-        return relay.ofType(eventType);
+        return relay.toFlowable(BackpressureStrategy.LATEST).ofType(eventType);
     }
 
 
