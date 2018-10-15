@@ -357,12 +357,9 @@ public class RxBus extends BaseBus {
                     public ObservableSource <?> apply(Class <?> type) throws Exception {
                         RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
                         LoggerUtil.debug("%s @RxSubscribe Annotation: %s", method, rxAnnotation.observeOnThread());
-                        Observable <?> observable;
-                        if (rxAnnotation.eventId().equals(NONE)) {
-                            observable = rxAnnotation.isSticky() ? ofStickyType(type) : ofType(type);
-                        } else {
-                            observable = rxAnnotation.isSticky() ? ofStickyType(RxEvent.class) : ofType(RxEvent.class);
-                        }
+
+                        Observable<?>  observable = rxAnnotation.isSticky() ? ofStickyType(type) : ofType(type);
+
                         return observable.observeOn(EventThread.getScheduler(rxAnnotation.observeOnThread()));
                     }
                 })
