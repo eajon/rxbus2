@@ -210,16 +210,16 @@ public class RxBus extends BaseBus {
      * @param <T>       event type
      * @return Observable of {@code T}
      */
-    public <T> Observable <T> ofStickyType(@NonNull Class <T> eventType) {
+    public <T> Observable <T> ofStickyType(boolean hasEventId,@NonNull Class <T> eventType) {
         synchronized (stickyEventMap) {
             @SuppressWarnings("unchecked")
             List <T> stickyEvents = (List <T>) stickyEventMap.get(eventType.hashCode());
             if (stickyEvents != null && stickyEvents.size() > 0) {
                 return Observable.fromIterable(stickyEvents)
-                        .mergeWith(ofType(eventType));
+                        .mergeWith(hasEventId?ofType((Class <T>) RxEvent.class):ofType(eventType));
             }
         }
-        return ofType(eventType);
+        return hasEventId?ofType((Class <T>) RxEvent.class):ofType(eventType);
     }
 
     /**
@@ -359,10 +359,10 @@ public class RxBus extends BaseBus {
                         LoggerUtil.debug("%s @RxSubscribe Annotation: %s", method, rxAnnotation.observeOnThread());
                         Observable <?> observable;
                         if(rxAnnotation.eventId().equals(NONE)) {
-                             observable = rxAnnotation.isSticky() ? ofStickyType(type) : ofType(type);
+                             observable = rxAnnotation.isSticky() ? ofStickyType(false,type) : ofType(type);
                         }else
                         {
-                            observable =rxAnnotation.isSticky() ? ofStickyType(type) : ofType(RxEvent.class);
+                            observable =rxAnnotation.isSticky() ? ofStickyType(true,type) : ofType(RxEvent.class);
                         }
 
                         return observable.observeOn(EventThread.getScheduler(rxAnnotation.observeOnThread()));
@@ -404,7 +404,7 @@ public class RxBus extends BaseBus {
                                 method.setAccessible(true);
                                 if (obj instanceof RxEvent) {
                                     RxEvent event = (RxEvent) obj;
-                                    method.invoke(subscriber, ((RxEvent) obj).getSource());
+                                    method.invoke(subscriber, event.getSource());
                                 } else {
                                     method.invoke(subscriber, obj);
                                 }//now RxBus2 do not handle exception for method. you should do it by yourself.

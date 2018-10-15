@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.orhanobut.logger.Logger;
 import com.threshold.rxbus2.RxBus;
 import com.threshold.rxbus2.annotation.RxSubscribe;
+import com.threshold.rxbus2.bean.RxEvent;
 import com.threshold.rxbus2.util.EventThread;
 import com.threshold.rxbus2demo.bean.DemoBean1;
 import com.threshold.rxbus2demo.bean.DemoBean2;
@@ -65,7 +66,7 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
     }
 
     //now we support private method.
-    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true)
+    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true,eventId = "222")
     @SuppressWarnings("unused")
     private void autoListenRxEvent2(DemoBean2 demoBean2) {
         final String text = String.format("{autoListenRxEvent2 Receive sticky DemoEvent2: %s\nThreadId: %s }\n", demoBean2.getData(), Thread.currentThread().getId());
@@ -127,17 +128,18 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
             case R.id.btnFireStickyEvent:
                 DemoBean1 demoBean3 = new DemoBean1(String.valueOf(RandomUtil.random(10)));
                 DemoBean2 demoBean2 =  new DemoBean2(RandomUtil.random(10));
-                RxBus.getDefault().postSticky(demoBean2);
+                RxBus.getDefault().postSticky("222",demoBean2);
                 break;
             case R.id.btnAddNewSubscriber:
                 Disposable subscribe = RxBus.getDefault()
-                        .ofStickyType(DemoBean2.class)
+                        .ofStickyType(true,DemoBean2.class)
                         .subscribeOn(Schedulers.io())
                         .observeOn(Schedulers.io())
-                        .subscribe(new Consumer<DemoBean2>() {
+                        .subscribe(new Consumer<Object>() {
                             @Override
-                            public void accept(DemoBean2 event1) throws Exception {
-                                manualListenRxEvent(event1);
+                            public void accept(Object event1) throws Exception {
+                                 if(event1 instanceof RxEvent)
+                                 manualListenRxEvent((DemoBean2) ((RxEvent)event1).getSource());
                             }
                         });
                 mCompositeDisposable.add(subscribe);
