@@ -37,14 +37,14 @@ dependencies {
     // https://mvnrepository.com/artifact/com.orhanobut/logger
     implementation 'com.orhanobut:logger:2.1.1'
     // https://mvnrepository.com/artifact/io.reactivex.rxjava2/rxjava
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.8'
     // https://mvnrepository.com/artifact/io.reactivex.rxjava2/rxandroid
-    implementation('io.reactivex.rxjava2:rxandroid:2.0.1') {
-        exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
-    }
+//    implementation('io.reactivex.rxjava2:rxandroid:2.1.0') {
+//        exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
+//    }
     // https://mvnrepository.com/artifact/com.jakewharton.rxrelay2/rxrelay
-    implementation('com.jakewharton.rxrelay2:rxrelay:2.0.0') {
-        exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
-    }
+//    implementation('com.jakewharton.rxrelay2:rxrelay:2.0.0') {
+//        exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
+//    }
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
     implementation project(':rxbus')
 }

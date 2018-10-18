@@ -56,7 +56,7 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
 //        mCompositeDisposable.add(subscribe);
     }
 
-    @RxSubscribe(observeOnThread = EventThread.MAIN,eventId = "111")
+    @RxSubscribe(observeOnThread = EventThread.MAIN, eventId = "111")
     @SuppressWarnings("unused")
     public void autoListenRxEvent(DemoBean1 demoBean1) {
         String text = String.format("{autoListenRxEvent Receive DemoEvent1: %s\nThreadId: %s }\n", demoBean1.getData(), Thread.currentThread().getId());
@@ -66,7 +66,7 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
     }
 
     //now we support private method.
-    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true,eventId = "222")
+    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true, eventId = "222")
     @SuppressWarnings("unused")
     private void autoListenRxEvent2(DemoBean2 demoBean2) {
         final String text = String.format("{autoListenRxEvent2 Receive sticky DemoEvent2: %s\nThreadId: %s }\n", demoBean2.getData(), Thread.currentThread().getId());
@@ -105,9 +105,8 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
 //    }
 
 
-
-    private void manualListenRxEvent(DemoBean2 event) {
-        final String text = String.format("{manualListenRxEvent [Receive DemoEvent1]: %s}\n", event.getData());
+    private void manualListenRxEvent(RxEvent event) {
+        final String text = String.format("{manualListenRxEvent [Receive DemoEvent1]: %s}\n", event.getSource().toString());
         Logger.d(text);
         runOnUiThread(new Runnable() {
             @Override
@@ -122,34 +121,34 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btnFireEvent:
-                DemoBean1 demoBean1 =new DemoBean1(String.valueOf(RandomUtil.random(10)));
-                RxBus.getDefault().post("111",demoBean1);
+                DemoBean1 demoBean1 = new DemoBean1(String.valueOf(RandomUtil.random(10)));
+                RxBus.getDefault().postSticky("111", demoBean1);
                 break;
             case R.id.btnFireStickyEvent:
                 DemoBean1 demoBean3 = new DemoBean1(String.valueOf(RandomUtil.random(10)));
-                DemoBean2 demoBean2 =  new DemoBean2(RandomUtil.random(10));
-                RxBus.getDefault().postSticky("222",demoBean2);
+                DemoBean2 demoBean2 = new DemoBean2(RandomUtil.random(10));
+                RxBus.getDefault().postSticky("222", demoBean2);
                 break;
             case R.id.btnAddNewSubscriber:
                 Disposable subscribe = RxBus.getDefault()
-                        .ofStickyType(true,DemoBean2.class)
+                        .ofStickyType(DemoBean2.class)
                         .subscribeOn(Schedulers.io())
                         .observeOn(Schedulers.io())
-                        .subscribe(new Consumer<Object>() {
+                        .subscribe(new Consumer <Object>() {
                             @Override
                             public void accept(Object event1) throws Exception {
-                                 if(event1 instanceof RxEvent)
-                                 manualListenRxEvent((DemoBean2) ((RxEvent)event1).getSource());
+                                manualListenRxEvent((RxEvent) event1);
+
                             }
                         });
                 mCompositeDisposable.add(subscribe);
                 view.setEnabled(false);
                 break;
             case R.id.btnRemoveStickyEvent:
-                List<DemoBean2> stickies = RxBus.getDefault()
+                List <DemoBean2> stickies = RxBus.getDefault()
                         .getSticky(DemoBean2.class);
                 if (stickies != null && stickies.size() > 0) {
-                    RxBus.getDefault().removeStickyEventAt(DemoBean2.class,stickies.size()-1);//remove the last sticky event
+                    RxBus.getDefault().removeStickyEventAt(DemoBean2.class, stickies.size() - 1);//remove the last sticky event
                     textView.append("Already removed last sticky event, you can press back key and reenter this activity and see difference.\n");
                 } else {
                     textView.append("No sticky event found, please fire some sticky event first\n");

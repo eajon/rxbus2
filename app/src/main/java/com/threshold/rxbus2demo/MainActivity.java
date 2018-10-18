@@ -5,12 +5,19 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+import com.threshold.rxbus2.RxBus;
+import com.threshold.rxbus2demo.bean.DemoBean1;
+import com.threshold.rxbus2demo.bean.DemoBean2;
+import com.threshold.rxbus2demo.util.RandomUtil;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        DemoBean2 demoBean2 =new DemoBean2(String.valueOf(RandomUtil.random(10)));
+        RxBus.getDefault().postSticky("222",demoBean2);
     }
 
     @Override

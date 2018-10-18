@@ -5,7 +5,6 @@ import com.threshold.rxbus2.annotation.RxSubscribe;
 import com.threshold.rxbus2.bean.RxEvent;
 import com.threshold.rxbus2.util.EventThread;
 
-import org.omg.PortableInterceptor.NON_EXISTENT;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -31,8 +30,6 @@ import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.internal.functions.ObjectHelper;
 import io.reactivex.schedulers.Schedulers;
-
-import static io.reactivex.annotations.SchedulerSupport.NONE;
 
 /**
  * once an {@link Observer} has subscribed, emits all subsequently observed items to the
@@ -84,9 +81,13 @@ public class RxBus extends BaseBus {
         this(PublishRelay.create());
     }
 
+    @Override
+    public void post(Object event) {
+        super.post(new RxEvent(event));
+    }
 
     public void post(String eventId, @NonNull Object event) {
-        post(new RxEvent(eventId, event));
+        super.post(new RxEvent(eventId, event));
     }
 
     /**
@@ -103,12 +104,12 @@ public class RxBus extends BaseBus {
                 stickyEvents = new LinkedList <>();
                 isStickEventListInMap = false;
             }
-            stickyEvents.add(event);
+            stickyEvents.add(new RxEvent(event));
             if (!isStickEventListInMap) {
                 stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
             }
         }
-        post(event);
+        super.post(new RxEvent(event));
     }
 
     public void postSticky(String eventId, @NonNull Object event) {
@@ -125,7 +126,7 @@ public class RxBus extends BaseBus {
                 stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
             }
         }
-        post(new RxEvent(eventId, event));
+        super.post(new RxEvent(eventId, event));
     }
 
 
@@ -206,20 +207,19 @@ public class RxBus extends BaseBus {
     /**
      * Get the specific type sticky event observable
      *
-     * @param eventType the sticky event type that you want listen
      * @param <T>       event type
+     * @param eventType the sticky event type that you want listen
      * @return Observable of {@code T}
      */
-    public <T> Flowable <T> ofStickyType(boolean hasEventId, @NonNull Class <T> eventType) {
+    public <T> Flowable <T> ofStickyType(@NonNull Class <T> eventType) {
         synchronized (stickyEventMap) {
             @SuppressWarnings("unchecked")
             List <T> stickyEvents = (List <T>) stickyEventMap.get(eventType.hashCode());
             if (stickyEvents != null && stickyEvents.size() > 0) {
-                return Flowable.fromIterable(stickyEvents)
-                        .mergeWith(hasEventId ? ofType((Class <T>) RxEvent.class) : ofType(eventType));
+                return Flowable.fromIterable(stickyEvents).mergeWith(ofType((Class <T>) RxEvent.class));
             }
         }
-        return hasEventId ? ofType((Class <T>) RxEvent.class) : ofType(eventType);
+        return ofType((Class <T>)RxEvent.class);
     }
 
     /**
@@ -357,40 +357,32 @@ public class RxBus extends BaseBus {
                     public Flowable <?> apply(Class <?> type) throws Exception {
                         RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
                         LoggerUtil.debug("%s @RxSubscribe Annotation: %s", method, rxAnnotation.observeOnThread());
-                        Flowable <?> observable;
-                        if (rxAnnotation.eventId().equals(NONE)) {
-                            observable = rxAnnotation.isSticky() ? ofStickyType(false, type) : ofType(type);
-                        } else {
-                            observable = rxAnnotation.isSticky() ? ofStickyType(true, type) : ofType(RxEvent.class);
-                        }
-                        return observable.observeOn(EventThread.getScheduler(rxAnnotation.observeOnThread()));
+                        Flowable <?> flowable =  rxAnnotation.isSticky()?ofStickyType(type):ofType(RxEvent.class);
+                        return flowable.observeOn(EventThread.getScheduler(rxAnnotation.observeOnThread()));
                     }
                 })
                 .filter(new Predicate <Object>() {
                     @Override
                     public boolean test(Object obj) {
-                        if (obj instanceof RxEvent) {
-                            RxEvent event = (RxEvent) obj;
-                            RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
-//                            if (rxAnnotation.eventId().equals(event.getEventId())) {
-//                                LoggerUtil.debug("eventID same");
-//                            } else {
-//                                LoggerUtil.debug("eventID diff");
-//                            }
-//                            if (method.getParameterTypes()[0].equals(event.getObject().getClass())) {
-//                                LoggerUtil.debug("class same" + event.getObject().getClass());
-//                            } else {
-//                                LoggerUtil.debug("class diff" + event.getObject().getClass() + method.getParameterTypes()[0]);
-//                            }
-                            if (rxAnnotation.eventId().equals(event.getEventId()) && method.getParameterTypes()[0].equals(event.getSource().getClass())) {
-                                return true;
+                        RxEvent event = (RxEvent) obj;
+                        RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
+                            if (rxAnnotation.eventId().equals(event.getEventId())) {
+                                LoggerUtil.debug("eventID same"+rxAnnotation.eventId()+"/"+event.getEventId());
                             } else {
-                                return false;
+                                LoggerUtil.debug("eventID diff"+rxAnnotation.eventId()+"/"+event.getEventId());
                             }
+                            if (method.getParameterTypes()[0].equals(event.getSource().getClass())) {
+                                LoggerUtil.debug("class same" + event.getSource().getClass());
+                            } else {
+                                LoggerUtil.debug("class diff" + event.getSource().getClass() + method.getParameterTypes()[0]);
+                            }
+                        if (rxAnnotation.eventId().equals(event.getEventId()) && method.getParameterTypes()[0].equals(event.getSource().getClass())) {
+                            return true;
+                        } else {
+                            return false;
                         }
 
 
-                        return true;
                     }
                 })
                 .subscribe(
@@ -400,12 +392,11 @@ public class RxBus extends BaseBus {
                             public void accept(Object obj) throws Exception {
                                 LoggerUtil.debug("Subscriber:%s invoke Method:%s", subscriber, method);
                                 method.setAccessible(true);
-                                if (obj instanceof RxEvent) {
-                                    RxEvent event = (RxEvent) obj;
-                                    method.invoke(subscriber, event.getSource());
-                                } else {
-                                    method.invoke(subscriber, obj);
-                                }//now RxBus2 do not handle exception for method. you should do it by yourself.
+
+                                RxEvent event = (RxEvent) obj;
+                                method.invoke(subscriber, event.getSource());
+
+                                //now RxBus2 do not handle exception for method. you should do it by yourself.
 //                                try {
 //                                    method.invoke(subscriber, obj);
 //                                } catch (IllegalAccessException e) {

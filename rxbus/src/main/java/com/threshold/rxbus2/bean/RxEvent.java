@@ -1,14 +1,17 @@
 package com.threshold.rxbus2.bean;
 
 import java.util.EventObject;
+
 import io.reactivex.annotations.NonNull;
+
+import static io.reactivex.annotations.SchedulerSupport.NONE;
 
 /**
  * All event send by RxBus2 should derived this class.
  * Created by threshold on 2018/1/24.
  */
 @SuppressWarnings("WeakerAccess")
-public  class RxEvent extends EventObject {
+public class RxEvent extends EventObject {
     /**
      * Constructs a prototypical Event.
      *
@@ -18,10 +21,17 @@ public  class RxEvent extends EventObject {
     private String eventId;
     private Object source;
 
-    public RxEvent(String eventId,@NonNull Object source) {
+    public RxEvent(String eventId, @NonNull Object source) {
         super(source);
-        this.eventId =eventId;
-        this.source=source;
+        this.eventId = eventId;
+        this.source = source;
+
+    }
+
+    public RxEvent(@NonNull Object source) {
+        super(source);
+        this.eventId = NONE;
+        this.source = source;
 
     }
 
