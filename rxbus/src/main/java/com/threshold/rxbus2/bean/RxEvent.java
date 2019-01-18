@@ -18,29 +18,29 @@ public class RxEvent extends EventObject {
      * @param source The object on which the Event initially occurred.
      * @throws IllegalArgumentException if source is null.
      */
-    private String eventId;
+    private String tag;
     private Object source;
 
-    public RxEvent(String eventId, @NonNull Object source) {
+    public RxEvent(String tag, @NonNull Object source) {
         super(source);
-        this.eventId = eventId;
+        this.tag = tag;
         this.source = source;
 
     }
 
     public RxEvent(@NonNull Object source) {
         super(source);
-        this.eventId = NONE;
+        this.tag = NONE;
         this.source = source;
 
     }
 
-    public String getEventId() {
-        return eventId;
+    public String getTag() {
+        return tag;
     }
 
-    public void setEventId(String eventId) {
-        this.eventId = eventId;
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class RxEvent extends EventObject {
     @Override
     public String toString() {
         return "RxEvent{" +
-                "eventId='" + eventId + '\'' +
+                "tag='" + tag + '\'' +
                 ", source=" + source +
                 '}';
     }

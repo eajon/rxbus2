@@ -112,7 +112,7 @@ public class RxBus extends BaseBus {
         super.post(new RxEvent(event));
     }
 
-    public void postSticky(String eventId, @NonNull Object event) {
+    public void postSticky(String tag, @NonNull Object event) {
         ObjectHelper.requireNonNull(event, "event == null");
         synchronized (stickyEventMap) {
             List <Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
@@ -121,12 +121,12 @@ public class RxBus extends BaseBus {
                 stickyEvents = new LinkedList <>();
                 isStickEventListInMap = false;
             }
-            stickyEvents.add(new RxEvent(eventId, event));
+            stickyEvents.add(new RxEvent(tag, event));
             if (!isStickEventListInMap) {
                 stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
             }
         }
-        super.post(new RxEvent(eventId, event));
+        super.post(new RxEvent(tag, event));
     }
 
 
@@ -366,17 +366,17 @@ public class RxBus extends BaseBus {
                     public boolean test(Object obj) {
                         RxEvent event = (RxEvent) obj;
                         RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
-                            if (rxAnnotation.eventId().equals(event.getEventId())) {
-                                LoggerUtil.debug("eventID same"+rxAnnotation.eventId()+"/"+event.getEventId());
-                            } else {
-                                LoggerUtil.debug("eventID diff"+rxAnnotation.eventId()+"/"+event.getEventId());
-                            }
-                            if (method.getParameterTypes()[0].equals(event.getSource().getClass())) {
-                                LoggerUtil.debug("class same" + event.getSource().getClass());
-                            } else {
-                                LoggerUtil.debug("class diff" + event.getSource().getClass() + method.getParameterTypes()[0]);
-                            }
-                        if (rxAnnotation.eventId().equals(event.getEventId()) && method.getParameterTypes()[0].equals(event.getSource().getClass())) {
+//                            if (rxAnnotation.tag().equals(event.getTag())) {
+//                                LoggerUtil.debug("eventID same"+rxAnnotation.tag()+"/"+event.getTag());
+//                            } else {
+//                                LoggerUtil.debug("eventID diff"+rxAnnotation.tag()+"/"+event.getTag());
+//                            }
+//                            if (method.getParameterTypes()[0].equals(event.getSource().getClass())) {
+//                                LoggerUtil.debug("class same" + event.getSource().getClass());
+//                            } else {
+//                                LoggerUtil.debug("class diff" + event.getSource().getClass() + method.getParameterTypes()[0]);
+//                            }
+                        if (rxAnnotation.tag().equals(event.getTag()) && method.getParameterTypes()[0].equals(event.getSource().getClass())) {
                             return true;
                         } else {
                             return false;

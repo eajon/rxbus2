@@ -17,5 +17,5 @@ import static io.reactivex.annotations.SchedulerSupport.NONE;
 public @interface RxSubscribe {
     EventThread observeOnThread() default EventThread.IO;
     boolean isSticky() default false;
-    String eventId() default NONE;
+    String tag() default NONE;
 }

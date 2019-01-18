@@ -56,7 +56,7 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
 //        mCompositeDisposable.add(subscribe);
     }
 
-    @RxSubscribe(observeOnThread = EventThread.MAIN, eventId = "111")
+    @RxSubscribe(observeOnThread = EventThread.MAIN, tag = "111")
     @SuppressWarnings("unused")
     public void autoListenRxEvent(DemoBean1 demoBean1) {
         String text = String.format("{autoListenRxEvent Receive DemoEvent1: %s\nThreadId: %s }\n", demoBean1.getData(), Thread.currentThread().getId());
@@ -66,7 +66,7 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
     }
 
     //now we support private method.
-    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true, eventId = "222")
+    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true, tag = "222")
     @SuppressWarnings("unused")
     private void autoListenRxEvent2(DemoBean2 demoBean2) {
         final String text = String.format("{autoListenRxEvent2 Receive sticky DemoEvent2: %s\nThreadId: %s }\n", demoBean2.getData(), Thread.currentThread().getId());

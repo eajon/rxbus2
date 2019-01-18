@@ -4,7 +4,7 @@
 >中文说明，请点[这里](http://www.jianshu.com/p/7f4a709d2be5)查看.
 
 This is seems like [EventBus](https://github.com/greenrobot/EventBus) which intent for post and listen event but use RxJava2 inside.
-# add eventId annotation make it easy to debug
+# add tag annotation make it easy to debug
 ```java
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -12,14 +12,14 @@ This is seems like [EventBus](https://github.com/greenrobot/EventBus) which inte
 public @interface RxSubscribe {
     EventThread observeOnThread() default EventThread.IO;
     boolean isSticky() default false;
-    String eventId() default NONE;
+    String tag() default NONE;
 }
 
-    public void post(String eventId, @NonNull Object event) {
-        post(new RxEvent(eventId, event));
+    public void post(String tag, @NonNull Object event) {
+        post(new RxEvent(tag, event));
     }
     
-     public void postSticky(String eventId, @NonNull Object event) {
+     public void postSticky(String tag, @NonNull Object event) {
         ObjectHelper.requireNonNull(event, "event == null");
         synchronized (stickyEventMap) {
             List <Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
@@ -28,12 +28,12 @@ public @interface RxSubscribe {
                 stickyEvents = new LinkedList <>();
                 isStickEventListInMap = false;
             }
-            stickyEvents.add(new RxEvent(eventId, event));
+            stickyEvents.add(new RxEvent(tag, event));
             if (!isStickEventListInMap) {
                 stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
             }
         }
-        post(new RxEvent(eventId, event));
+        post(new RxEvent(tag, event));
     }
 ```
 
