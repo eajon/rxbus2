@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         DemoBean2 demoBean2 =new DemoBean2(String.valueOf(RandomUtil.random(10)));
-        RxBus.getDefault().postSticky("222",demoBean2);
+        RxBus.getDefault().post("222",demoBean2,true);
     }
 
     @Override

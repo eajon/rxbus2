@@ -56,20 +56,31 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
 //        mCompositeDisposable.add(subscribe);
     }
 
+
     @RxSubscribe(observeOnThread = EventThread.MAIN, tag = "111")
     @SuppressWarnings("unused")
     public void autoListenRxEvent(DemoBean1 demoBean1) {
-        String text = String.format("{autoListenRxEvent Receive DemoEvent1: %s\nThreadId: %s }\n", demoBean1.getData(), Thread.currentThread().getId());
+        String text = String.format("{autoListenRxEvent Receive Normal DemoEvent1: %s\nThreadId: %s }\n", demoBean1.getData(), Thread.currentThread().getId());
         Logger.d(text);
         textView.append(text);
         textView.append("\n");
     }
 
-    //now we support private method.
-    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true, tag = "222")
+    @RxSubscribe(observeOnThread = EventThread.MAIN,isSticky = true, tag = "111")
+    @SuppressWarnings("unused")
+    public void autoListenRxEventStick(DemoBean1 demoBean1) {
+        String text = String.format("{autoListenRxEvent Receive Stick DemoEvent1: %s\nThreadId: %s }\n", demoBean1.getData(), Thread.currentThread().getId());
+        Logger.d(text);
+        textView.append(text);
+        textView.append("\n");
+    }
+
+
+
+    @RxSubscribe(observeOnThread = EventThread.IO,  tag = "222")
     @SuppressWarnings("unused")
     private void autoListenRxEvent2(DemoBean2 demoBean2) {
-        final String text = String.format("{autoListenRxEvent2 Receive sticky DemoEvent2: %s\nThreadId: %s }\n", demoBean2.getData(), Thread.currentThread().getId());
+        final String text = String.format("{autoListenRxEvent2 Receive Normal DemoEvent2: %s\nThreadId: %s }\n", demoBean2.getData(), Thread.currentThread().getId());
         Logger.d(text);
         runOnUiThread(new Runnable() {
             @Override
@@ -79,6 +90,23 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
             }
         });
     }
+
+    //now we support private method.
+    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true, tag = "222")
+    @SuppressWarnings("unused")
+    private void autoListenRxEvent2Stick(DemoBean2 demoBean2) {
+        final String text = String.format("{autoListenRxEvent2 Receive Sticky DemoEvent2: %s\nThreadId: %s }\n", demoBean2.getData(), Thread.currentThread().getId());
+        Logger.d(text);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                textView.append(text);
+                textView.append("\n");
+            }
+        });
+    }
+
+
 
     // Will crash on register. Because no param in method.
 //    @RxSubscribe(observeOnThread = EventThread.IO, isSticky = true)
@@ -122,12 +150,12 @@ public class RxBusActivity extends AppCompatActivity implements View.OnClickList
         switch (view.getId()) {
             case R.id.btnFireEvent:
                 DemoBean1 demoBean1 = new DemoBean1(String.valueOf(RandomUtil.random(10)));
-                RxBus.getDefault().postSticky("111", demoBean1);
+                RxBus.getDefault().post("111", demoBean1,false);
                 break;
             case R.id.btnFireStickyEvent:
                 DemoBean1 demoBean3 = new DemoBean1(String.valueOf(RandomUtil.random(10)));
                 DemoBean2 demoBean2 = new DemoBean2(RandomUtil.random(10));
-                RxBus.getDefault().postSticky("222", demoBean2);
+                RxBus.getDefault().post("222", demoBean2,true);
                 break;
             case R.id.btnAddNewSubscriber:
                 Disposable subscribe = RxBus.getDefault()

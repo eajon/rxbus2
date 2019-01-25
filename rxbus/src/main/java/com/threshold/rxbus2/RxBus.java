@@ -95,38 +95,42 @@ public class RxBus extends BaseBus {
      *
      * @param event sticky event.
      */
-    public void postSticky(@NonNull Object event) {
+    public void post(@NonNull Object event,boolean isStick) {
         ObjectHelper.requireNonNull(event, "event == null");
-        synchronized (stickyEventMap) {
-            List <Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
-            boolean isStickEventListInMap = true;
-            if (stickyEvents == null) {
-                stickyEvents = new LinkedList <>();
-                isStickEventListInMap = false;
-            }
-            stickyEvents.add(new RxEvent(event));
-            if (!isStickEventListInMap) {
-                stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
+        if(isStick) {
+            synchronized (stickyEventMap) {
+                List<Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
+                boolean isStickEventListInMap = true;
+                if (stickyEvents == null) {
+                    stickyEvents = new LinkedList<>();
+                    isStickEventListInMap = false;
+                }
+                stickyEvents.add(new RxEvent(event, true));
+                if (!isStickEventListInMap) {
+                    stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
+                }
             }
         }
-        super.post(new RxEvent(event));
+        super.post(new RxEvent(event,isStick));
     }
 
-    public void postSticky(String tag, @NonNull Object event) {
+    public void post(String tag, @NonNull Object event,boolean isStick) {
         ObjectHelper.requireNonNull(event, "event == null");
-        synchronized (stickyEventMap) {
-            List <Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
-            boolean isStickEventListInMap = true;
-            if (stickyEvents == null) {
-                stickyEvents = new LinkedList <>();
-                isStickEventListInMap = false;
-            }
-            stickyEvents.add(new RxEvent(tag, event));
-            if (!isStickEventListInMap) {
-                stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
+        if(isStick) {
+            synchronized (stickyEventMap) {
+                List<Object> stickyEvents = stickyEventMap.get(event.getClass().hashCode());
+                boolean isStickEventListInMap = true;
+                if (stickyEvents == null) {
+                    stickyEvents = new LinkedList<>();
+                    isStickEventListInMap = false;
+                }
+                stickyEvents.add(new RxEvent(tag, event, true));
+                if (!isStickEventListInMap) {
+                    stickyEventMap.put(event.getClass().hashCode(), stickyEvents);
+                }
             }
         }
-        super.post(new RxEvent(tag, event));
+        super.post(new RxEvent(tag, event,isStick));
     }
 
 
@@ -366,17 +370,17 @@ public class RxBus extends BaseBus {
                     public boolean test(Object obj) {
                         RxEvent event = (RxEvent) obj;
                         RxSubscribe rxAnnotation = method.getAnnotation(RxSubscribe.class);
-//                            if (rxAnnotation.tag().equals(event.getTag())) {
-//                                LoggerUtil.debug("eventID same"+rxAnnotation.tag()+"/"+event.getTag());
-//                            } else {
-//                                LoggerUtil.debug("eventID diff"+rxAnnotation.tag()+"/"+event.getTag());
-//                            }
-//                            if (method.getParameterTypes()[0].equals(event.getSource().getClass())) {
-//                                LoggerUtil.debug("class same" + event.getSource().getClass());
-//                            } else {
-//                                LoggerUtil.debug("class diff" + event.getSource().getClass() + method.getParameterTypes()[0]);
-//                            }
-                        if (rxAnnotation.tag().equals(event.getTag()) && method.getParameterTypes()[0].equals(event.getSource().getClass())) {
+                            if (rxAnnotation.tag().equals(event.getTag())) {
+                                LoggerUtil.debug("eventID same"+rxAnnotation.tag()+"/"+event.getTag());
+                            } else {
+                                LoggerUtil.debug("eventID diff"+rxAnnotation.tag()+"/"+event.getTag());
+                            }
+                            if (method.getParameterTypes()[0].equals(event.getSource().getClass())) {
+                                LoggerUtil.debug("class same" + event.getSource().getClass());
+                            } else {
+                                LoggerUtil.debug("class diff" + event.getSource().getClass() + method.getParameterTypes()[0]);
+                            }
+                        if (rxAnnotation.tag().equals(event.getTag()) &&rxAnnotation.isSticky()==event.isStick()&& method.getParameterTypes()[0].equals(event.getSource().getClass())) {
                             return true;
                         } else {
                             return false;

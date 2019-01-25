@@ -20,11 +20,21 @@ public class RxEvent extends EventObject {
      */
     private String tag;
     private Object source;
+    private boolean isStick;
 
     public RxEvent(String tag, @NonNull Object source) {
         super(source);
         this.tag = tag;
         this.source = source;
+        this.isStick =false;
+
+    }
+
+    public RxEvent(String tag, @NonNull Object source,boolean isStick) {
+        super(source);
+        this.tag = tag;
+        this.source = source;
+        this.isStick =isStick;
 
     }
 
@@ -32,6 +42,15 @@ public class RxEvent extends EventObject {
         super(source);
         this.tag = NONE;
         this.source = source;
+        this.isStick =false;
+
+    }
+
+    public RxEvent(@NonNull Object source,boolean isStick) {
+        super(source);
+        this.tag = NONE;
+        this.source = source;
+        this.isStick =isStick;
 
     }
 
@@ -52,11 +71,20 @@ public class RxEvent extends EventObject {
         this.source = source;
     }
 
+    public boolean isStick() {
+        return isStick;
+    }
+
+    public void setStick(boolean stick) {
+        isStick = stick;
+    }
+
     @Override
     public String toString() {
         return "RxEvent{" +
                 "tag='" + tag + '\'' +
                 ", source=" + source +
+                ", isStick=" + isStick +
                 '}';
     }
 }
